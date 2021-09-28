@@ -13,8 +13,9 @@ import (
 
 func Start() {
 	bikesRepository := repository.NewBikesRepository()
+	uploadService := service.NewUploadService()
 	bikesService := service.NewBikesService(bikesRepository)
-	bikesController := controller.NewBikesController(bikesService)
+	bikesController := controller.NewBikesController(bikesService, uploadService)
 
 	r := chi.NewRouter()
 

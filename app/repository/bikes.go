@@ -11,6 +11,8 @@ type BikesRepository interface {
 	GetBikes() (entity.Stock, error)
 	AddBike(bike *entity.Bike) (*entity.Bike, error)
 	UpdateBike(bike *entity.Bike) (*entity.Bike, error)
+	FindById(id string) entity.Bike
+	AddImages(bike entity.Bike) error
 }
 
 type bikesRepository struct {
@@ -34,25 +36,44 @@ func (r *bikesRepository) AddBike(bike *entity.Bike) (*entity.Bike, error) {
 	return bike, nil
 }
 
+func (r *bikesRepository) FindById(id string) entity.Bike {
+	bike, _ := r.find(id)
+
+	return bike
+}
+
 func (r *bikesRepository) UpdateBike(bike *entity.Bike) (*entity.Bike, error) {
-	// find bike to be updated and the index
-	var bikeToUpdate entity.Bike
-	var index int
-	for i, b := range r.stockEntity.Bikes {
-		if b.ID == bike.ID {
-			bikeToUpdate = b
-			index = i
-			break
-		}
-	}
+	bikeToUpdate, index := r.find(bike.ID)
 
 	bikeToUpdate.UpdatedAt = time.Now()
 	bikeToUpdate.Stock = bike.Stock
 	bikeToUpdate.Name = bike.Name
 	bikeToUpdate.Color = bike.Color
 
-	// update bike by index
 	r.stockEntity.Bikes[index] = bikeToUpdate
 
 	return &bikeToUpdate, nil
+}
+
+func (r *bikesRepository) AddImages(bike entity.Bike) error {
+	bikeToUpdate, index := r.find(bike.ID)
+
+	bikeToUpdate.Images = bike.Images
+	r.stockEntity.Bikes[index] = bikeToUpdate
+
+	return nil
+}
+
+func (r *bikesRepository) find(id string) (entity.Bike, int) {
+	var bikeToUpdate entity.Bike
+	var index int
+	for i, b := range r.stockEntity.Bikes {
+		if b.ID == id {
+			bikeToUpdate = b
+			index = i
+			break
+		}
+	}
+
+	return bikeToUpdate, index
 }

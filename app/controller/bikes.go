@@ -2,16 +2,12 @@ package controller
 
 import (
 	"encoding/json"
-	"fmt"
-	"io"
 	"net/http"
-	"os"
-	"path/filepath"
-	"time"
 
 	"github.com/fernandoporazzi/bike-shop/app/entity"
 	"github.com/fernandoporazzi/bike-shop/app/errors"
 	"github.com/fernandoporazzi/bike-shop/app/service"
+	"github.com/go-chi/chi/v5"
 )
 
 type BikesController interface {
@@ -22,12 +18,14 @@ type BikesController interface {
 }
 
 type bikesController struct {
-	bikeService service.BikeService
+	bikeService   service.BikeService
+	uploadService service.UploadService
 }
 
-func NewBikesController(bikeService service.BikeService) BikesController {
+func NewBikesController(bikeService service.BikeService, uploadService service.UploadService) BikesController {
 	return &bikesController{
-		bikeService: bikeService,
+		bikeService:   bikeService,
+		uploadService: uploadService,
 	}
 }
 
@@ -93,48 +91,28 @@ func (c *bikesController) UpdateBike(response http.ResponseWriter, request *http
 }
 
 func (c *bikesController) UploadImages(response http.ResponseWriter, request *http.Request) {
-	err := request.ParseMultipartForm(200000) // grab the multipart form
+	bikeId := chi.URLParam(request, "id")
+
+	err := request.ParseMultipartForm(200000)
 	if err != nil {
 		response.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(response).Encode(errors.ServiceError{Message: "Error on ParseMultipartForm"})
+		json.NewEncoder(response).Encode(errors.ServiceError{Message: err.Error()})
 		return
 	}
 
 	formdata := request.MultipartForm
 
-	files := formdata.File["files"]
+	paths, err := c.uploadService.Upload(formdata)
 
-	for i, _ := range files {
-		file, err := files[i].Open()
-
-		defer file.Close()
-
-		if err != nil {
-			response.WriteHeader(http.StatusInternalServerError)
-			json.NewEncoder(response).Encode(errors.ServiceError{Message: err.Error()})
-			return
-		}
-
-		// rename file
-		newName := fmt.Sprintf("./static/%d%s", time.Now().UnixNano(), filepath.Ext(files[i].Filename))
-		destination, err := os.Create(newName)
-
-		defer destination.Close()
-
-		if err != nil {
-			fmt.Println(err)
-			response.WriteHeader(http.StatusInternalServerError)
-			json.NewEncoder(response).Encode(errors.ServiceError{Message: "Error creating destination"})
-			return
-		}
-
-		if _, err := io.Copy(destination, file); err != nil {
-			response.WriteHeader(http.StatusInternalServerError)
-			json.NewEncoder(response).Encode(errors.ServiceError{Message: "Error copying"})
-			return
-		}
+	if err != nil {
+		response.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(response).Encode(errors.ServiceError{Message: err.Error()})
+		return
 	}
 
+	// add the paths to the repository
+	err = c.bikeService.AddImages(bikeId, paths)
+
 	response.WriteHeader(http.StatusOK)
-	json.NewEncoder(response).Encode("Success")
+	json.NewEncoder(response).Encode(paths)
 }
