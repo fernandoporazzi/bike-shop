@@ -10,6 +10,7 @@ type BikeService interface {
 	AddBike(bike *entity.Bike) (*entity.Bike, error)
 	UpdateBike(bike *entity.Bike) (*entity.Bike, error)
 	AddImages(bikeId string, paths []string) error
+	GetBikeById(bikeId string) entity.Bike
 }
 
 type bikeService struct {
@@ -46,4 +47,10 @@ func (s *bikeService) AddImages(bikeId string, paths []string) error {
 	bike.Images = paths
 
 	return s.bikesRepository.AddImages(bike)
+}
+
+func (s *bikeService) GetBikeById(bikeId string) entity.Bike {
+	bike := s.bikesRepository.FindById(bikeId)
+
+	return bike
 }

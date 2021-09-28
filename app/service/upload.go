@@ -34,9 +34,9 @@ func (s *uploadService) Upload(formdata *multipart.Form) ([]string, error) {
 		}
 
 		// rename file as uuid to avoid naming conflicts
-		newName := fmt.Sprintf("./static/%s%s", uuid.NewString(), filepath.Ext(files[i].Filename))
+		newName := fmt.Sprintf("%s%s", uuid.NewString(), filepath.Ext(files[i].Filename))
 
-		destination, err := os.Create(newName)
+		destination, err := os.Create("./static/" + newName)
 
 		defer destination.Close()
 

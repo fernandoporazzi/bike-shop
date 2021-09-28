@@ -15,6 +15,7 @@ type BikesController interface {
 	AddBike(response http.ResponseWriter, request *http.Request)
 	UpdateBike(response http.ResponseWriter, request *http.Request)
 	UploadImages(response http.ResponseWriter, request *http.Request)
+	GetBikeById(response http.ResponseWriter, request *http.Request)
 }
 
 type bikesController struct {
@@ -115,4 +116,13 @@ func (c *bikesController) UploadImages(response http.ResponseWriter, request *ht
 
 	response.WriteHeader(http.StatusOK)
 	json.NewEncoder(response).Encode(paths)
+}
+
+func (c *bikesController) GetBikeById(response http.ResponseWriter, request *http.Request) {
+	id := chi.URLParam(request, "id")
+
+	bike := c.bikeService.GetBikeById(id)
+
+	response.WriteHeader(http.StatusOK)
+	json.NewEncoder(response).Encode(bike)
 }

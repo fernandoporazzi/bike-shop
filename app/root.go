@@ -9,6 +9,7 @@ import (
 	"github.com/fernandoporazzi/bike-shop/app/service"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/go-chi/cors"
 )
 
 func Start() {
@@ -24,6 +25,15 @@ func Start() {
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
 
+	cors := cors.New(cors.Options{
+		AllowedOrigins:   []string{"*"},
+		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"},
+		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
+		AllowCredentials: true,
+		MaxAge:           300, // Maximum value not ignored by any of major browsers
+	})
+	r.Use(cors.Handler)
+
 	// Set a timeout value on the request context (ctx), that will signal
 	// through ctx.Done() that the request has timed out and further
 	// processing should be stopped.
@@ -38,6 +48,7 @@ func Start() {
 
 	r.Route("/bikes", func(r chi.Router) {
 		r.Get("/", bikesController.GetBikes)
+		r.Get("/{id}", bikesController.GetBikeById)
 		r.Put("/{id}", bikesController.UpdateBike)
 		r.Post("/", bikesController.AddBike)
 		r.Post("/upload/{id}", bikesController.UploadImages)
