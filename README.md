@@ -25,3 +25,8 @@ $ npm start
 ```
 
 The frontend applicatin will run on port `:3000`.
+
+Video of the app up and running
+
+https://user-images.githubusercontent.com/2279686/135094631-764f9e3e-36a0-4940-b620-a39766f8e4ed.mp4
+
