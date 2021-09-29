@@ -5,6 +5,12 @@ type Params = {
   id: string;
 }
 
+type Response = {
+  name: string;
+  color: string;
+  stock: number;
+}
+
 const Bike = (): JSX.Element => {
   let { id } = useParams<Params>();
 
@@ -15,7 +21,7 @@ const Bike = (): JSX.Element => {
   useEffect(() => {
     const request = async () => {
       const res = await fetch(`http://localhost:8080/bikes/${id}`);
-      const data = await res.json();
+      const data: Response = await res.json();
 
       setName(data.name);
       setColor(data.color);
